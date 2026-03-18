@@ -1,0 +1,64 @@
+############################
+# Secrets / environment
+############################
+.env
+.env.*
+!.env.example
+!.env.template
+
+############################
+# Python
+############################
+.venv/
+__pycache__/
+*.py[cod]
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+coverage/
+.coverage
+dist/
+build/
+*.egg-info/
+
+############################
+# Node
+############################
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+############################
+# WhatsApp bot runtime data
+############################
+**/.wwebjs_auth/
+**/.wwebjs_cache/
+
+############################
+# Vector store persistence
+############################
+**/chroma_data/
+
+############################
+# Optional local data folders (local DB files)
+############################
+data/db/
+data/mongo/
+data/mongodb/
+mongo-data/
+
+############################
+# Editors / OS
+############################
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+############################
+# Generated local docs
+############################
+/Pipeline Documentation.docx
