@@ -65,7 +65,7 @@ async function handleGroupMessage(msg, chat, client) {
   if (isAssistantQuery(body)) {
     const question = extractQuestion(body);
     if (!question) {
-      await chat.sendMessage('Please provide a question after @assistant.');
+      await chat.sendMessage(`Please provide a question after ${config.assistant.triggerPrefix}.`);
       return;
     }
 

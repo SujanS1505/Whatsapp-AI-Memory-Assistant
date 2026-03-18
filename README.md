@@ -201,15 +201,15 @@ Send messages in any WhatsApp group that the linked account is a member of.
 
 | Command | Description |
 |---|---|
-| `@assistant summarize today's discussion` | Daily summary of the last 24 hours |
-| `@assistant daily summary` | Same as above |
-| `@assistant what did Chin say about commits` | Semantic search + RAG answer |
-| `@assistant what tasks were assigned today` | Retrieves task-related messages |
-| `@assistant what was discussed about the repository` | Topic Q&A |
-| `@assistant search commits` | Returns top matching messages about commits |
-| `@assistant summarize commits` | LLM summary of all commit-related messages |
+| `@chimera assistant summarize today's discussion` | Daily summary of the last 24 hours |
+| `@chimera assistant daily summary` | Same as above |
+| `@chimera assistant what did Chin say about commits` | Semantic search + RAG answer |
+| `@chimera assistant what tasks were assigned today` | Retrieves task-related messages |
+| `@chimera assistant what was discussed about the repository` | Topic Q&A |
+| `@chimera assistant search commits` | Returns top matching messages about commits |
+| `@chimera assistant summarize commits` | LLM summary of all commit-related messages |
 
-The assistant **only responds when a message starts with `@assistant`**. All other messages are silently stored and indexed.
+The assistant **only responds when a message starts with `@chimera assistant`**. All other messages are silently stored and indexed.
 
 ---
 

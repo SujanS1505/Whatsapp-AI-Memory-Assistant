@@ -23,7 +23,7 @@ const config = {
     timeout: parseInt(process.env.API_TIMEOUT, 10) || 30000,
   },
   assistant: {
-    triggerPrefix: '@assistant',
+    triggerPrefix: '@chimera assistant',
   },
 };
 

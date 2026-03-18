@@ -107,18 +107,9 @@ class QueryService:
         if not hits:
             return []
 
-        # Keep only semantically relevant matches. Lower cosine distance means higher similarity.
-        relevant_hits = [
-            hit
-            for hit in hits
-            if hit.get("distance") is not None and hit.get("distance") <= self.settings.retrieval_max_distance
-        ]
-        if not relevant_hits:
-            return []
-
         # 3. Hydrate from metadata (avoids an extra MongoDB roundtrip for common queries)
         messages: List[StoredMessage] = []
-        for hit in relevant_hits:
+        for hit in hits:
             meta = hit.get("metadata", {})
             from datetime import datetime, timezone
             try:
@@ -139,48 +130,30 @@ class QueryService:
         return messages
 
     async def _rag_answer(self, group_id: str, question: str) -> QueryResponse:
-        """Retrieve context and answer with RAG, with general-knowledge fallback."""
+        """Retrieve context and ask the LLM for an answer."""
         context_messages = await self._retrieve_context(group_id, question)
 
         if not context_messages:
-            logger.info("[QueryService] No relevant context found; using general-knowledge fallback.")
-            answer_text = await self._general_answer(question)
-            return QueryResponse(answer=answer_text, sources_count=0)
+            return QueryResponse(
+                answer="I couldn't find any relevant messages in this group's history to answer your question.",
+                sources_count=0,
+            )
 
         context_text = _format_context(context_messages)
 
         system_prompt = (
             "You are an AI assistant that analyzes WhatsApp group discussions. "
-            "Use the provided conversation context when it is relevant and sufficient. "
-            "If the context is missing or insufficient to answer the user's question, "
-            "fall back to your general knowledge and still provide a helpful answer. "
-            "When falling back, briefly mention that the answer is not based on group history."
+            "Answer the user's question clearly and concisely based strictly on the "
+            "conversation context provided. If the context does not contain enough "
+            "information, say so honestly. Do not invent facts."
         )
         user_prompt = (
             f"Context — past group messages:\n\n{context_text}\n\n"
             f"User Question: {question}\n\n"
-            "Generate a clear answer. Prefer context-grounded details where available."
+            f"Generate a clear answer based on the discussion above."
         )
         prompt = _mistral_prompt(system_prompt, user_prompt)
 
-        answer_text = await self._invoke_llm_text(prompt)
-        logger.info(f"[QueryService] RAG answer generated, sources: {len(context_messages)}")
-        return QueryResponse(answer=answer_text, sources_count=len(context_messages))
-
-    async def _general_answer(self, question: str) -> str:
-        """Answer directly with model knowledge when no conversation context is found."""
-        system_prompt = (
-            "You are a helpful AI assistant. "
-            "Answer the user's question clearly and accurately using your general knowledge. "
-            "Since no relevant WhatsApp history was found, mention that this answer is general "
-            "knowledge and not derived from the group's conversation."
-        )
-        user_prompt = f"User Question: {question}"
-        prompt = _mistral_prompt(system_prompt, user_prompt)
-        return await self._invoke_llm_text(prompt)
-
-    async def _invoke_llm_text(self, prompt: str) -> str:
-        """Invoke Bedrock LLM and return text output."""
         try:
             body = {
                 "prompt": prompt,
@@ -188,7 +161,9 @@ class QueryService:
                 "temperature": 0.3,
             }
             result = await invoke_model_async(self.settings.bedrock_llm_model, body)
-            return result["outputs"][0]["text"].strip()
+            answer_text = result["outputs"][0]["text"].strip()
+            logger.info(f"[QueryService] RAG answer generated, sources: {len(context_messages)}")
+            return QueryResponse(answer=answer_text, sources_count=len(context_messages))
         except Exception as e:
             logger.error(f"[QueryService] Bedrock LLM call failed: {e}")
             raise
