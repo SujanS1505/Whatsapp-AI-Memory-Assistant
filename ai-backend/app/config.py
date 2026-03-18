@@ -25,6 +25,7 @@ class Settings(BaseSettings):
 
     # Retrieval config
     top_k_results: int = 10
+    retrieval_max_distance: float = 0.6
 
     # Application
     app_host: str = "0.0.0.0"
